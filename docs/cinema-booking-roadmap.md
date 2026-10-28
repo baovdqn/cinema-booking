@@ -54,17 +54,17 @@
 
 **Việc cần làm**
 
-- [ ] Tạo repo, thư mục `docs/`, review và hoàn thiện `01-requirements.md`
-- [ ] Cài và kiểm tra: `java -version`, `docker --version`
-- [ ] Viết `docker-compose.yml` (Postgres, Redis, MinIO), ghim version image, tách mật khẩu ra `.env`
-- [ ] Kiểm tra: `docker compose ps`, vào `psql`, `redis-cli ping`, mở giao diện web MinIO
-- [ ] Kiểm tra volume: `docker compose down` rồi `up` (dữ liệu còn), sau đó `down -v` (dữ liệu mất)
-- [ ] Tạo project Spring Boot từ start.spring.io (Maven, Java, Jar; dependencies: Web, Data JPA, PostgreSQL Driver, Liquibase, Data Redis, Validation, Actuator, DevTools)
-- [ ] Đọc `pom.xml`, đối chiếu với các dependency đã chọn
-- [ ] Cấu hình `application.properties` hoặc `.yml` (datasource, `ddl-auto: validate`, liquibase, redis)
-- [ ] Hiểu lại ERD: với mỗi bảng, tự giải thích khóa chính, ràng buộc, index cần có
-- [ ] **Tự viết** changelog `001` cho nhóm catalog (`app_user`, `movie`, `cinema`, `room`, `seat`) rồi mới so với bản tham khảo
-- [ ] Chạy app, kiểm tra bảng bằng `\dt` và `\d tên_bảng`
+- [x] Tạo repo, thư mục `docs/`, review và hoàn thiện `01-requirements.md`
+- [x] Cài và kiểm tra: `java -version`, `docker --version`
+- [x] Viết `docker-compose.yml` (Postgres, Redis, MinIO), ghim version image, tách mật khẩu ra `.env`
+- [x] Kiểm tra: `docker compose ps`, vào `psql`, `redis-cli ping`, mở giao diện web MinIO
+- [x] Kiểm tra volume: `docker compose down` rồi `up` (dữ liệu còn), sau đó `down -v` (dữ liệu mất)
+- [x] Tạo project Spring Boot từ start.spring.io (Maven, Java, Jar; dependencies: Web, Data JPA, PostgreSQL Driver, Liquibase, Data Redis, Validation, Actuator, DevTools)
+- [x] Đọc `pom.xml`, đối chiếu với các dependency đã chọn
+- [x] Cấu hình `application.properties` hoặc `.yml` (datasource, `ddl-auto: validate`, liquibase, redis)
+- [x] Hiểu lại ERD: với mỗi bảng, tự giải thích khóa chính, ràng buộc, index cần có
+- [x] **Tự viết** changelog `001` cho nhóm catalog (`app_user`, `movie`, `cinema`, `room`, `seat`) rồi mới so với bản tham khảo
+- [x] Chạy app, kiểm tra bảng bằng `\dt` và `\d tên_bảng`
 - [ ] Làm endpoint `GET /movies` (entity, repository, controller)
 
 **Kiến thức cần học (học đến đâu dùng đến đó)**

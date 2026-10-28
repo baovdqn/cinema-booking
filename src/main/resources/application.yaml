@@ -3,9 +3,9 @@ spring:
     name: cinema-booking
 
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:cinema_booking}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:cinema_booking}
+    username: ${POSTGRES_USER:cinema}
+    password: ${POSTGRES_PASSWORD:cinema123}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
