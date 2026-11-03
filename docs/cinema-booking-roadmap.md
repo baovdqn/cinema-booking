@@ -65,7 +65,7 @@
 - [x] Hiểu lại ERD: với mỗi bảng, tự giải thích khóa chính, ràng buộc, index cần có
 - [x] **Tự viết** changelog `001` cho nhóm catalog (`app_user`, `movie`, `cinema`, `room`, `seat`) rồi mới so với bản tham khảo
 - [x] Chạy app, kiểm tra bảng bằng `\dt` và `\d tên_bảng`
-- [ ] Làm endpoint `GET /movies` (entity, repository, controller)
+- [x] Làm endpoint `GET /movies` (entity, repository, controller)
 
 **Kiến thức cần học (học đến đâu dùng đến đó)**
 
