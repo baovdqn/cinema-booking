@@ -68,3 +68,4 @@
    - API xem lịch chiếu theo phim, rạp, ngày.
 4. **Tách DTO & Validation**:
    - Tách Request/Response DTO khỏi Entity, thêm Bean Validation (`@NotBlank`, `@NotNull`, ...).
+
