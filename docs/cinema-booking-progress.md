@@ -12,16 +12,16 @@
 
 ## 2. Đề tài và quyết định nghiệp vụ đã chốt
 
-| Quyết định | Chốt |
-|---|---|
-| Đề tài | Bán vé xem phim, **một chuỗi rạp duy nhất** (không làm marketplace nhiều đối tác) |
-| Số ghế tối đa mỗi lần đặt | **4** |
-| Hết thời gian giữ ghế | Hết session, ghế được **nhả** cho người khác (không gia hạn) |
-| Thời gian giữ ghế | 8 phút (TTL) |
-| Hoàn vé | **Không làm** |
-| Redis | Dùng **ngay từ MVP1** để giữ ghế |
-| Công nghệ | Java 21, Spring Boot, PostgreSQL, Redis, MinIO (S3), **Liquibase**, Docker Compose |
-| Ràng buộc cứng duy nhất | **Không bao giờ bán trùng một ghế** |
+| Quyết định                     | Chốt                                                                                              |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Đề tài                         | Bán vé xem phim,**một chuỗi rạp duy nhất** (không làm marketplace nhiều đối tác) |
+| Số ghế tối đa mỗi lần đặt | **4**                                                                                        |
+| Hết thời gian giữ ghế         | Hết session, ghế được**nhả** cho người khác (không gia hạn)                       |
+| Thời gian giữ ghế              | 8 phút (TTL)                                                                                      |
+| Hoàn vé                         | **Không làm**                                                                              |
+| Redis                             | Dùng**ngay từ MVP1** để giữ ghế                                                        |
+| Công nghệ                       | Java 21, Spring Boot, PostgreSQL, Redis, MinIO (S3),**Liquibase**, Docker Compose            |
+| Ràng buộc cứng duy nhất       | **Không bao giờ bán trùng một ghế**                                                    |
 
 Luồng khách hàng: xem phim → chọn rạp/suất chiếu → xem sơ đồ ghế → giữ ghế → thanh toán → nhận vé QR.
 Quản trị: quản lý phim, rạp, phòng, suất chiếu, giá vé, upload poster.
@@ -36,16 +36,16 @@ Quản trị: quản lý phim, rạp, phòng, suất chiếu, giá vé, upload p
 
 ## 4. Hai MVP
 
-| | MVP1: Đúng đắn | MVP2: Chịu tải và phân tán |
-|---|---|---|
-| Kiến trúc | Modular monolith | 4-5 service + gateway |
-| Giữ ghế | Redis (Lua, TTL) | Redis (như MVP1) + hàng chờ ảo, rate limit |
-| Nguồn sự thật ghế đã bán | PostgreSQL | PostgreSQL |
-| Bất đồng bộ | Không | Message broker + outbox |
-| Giao dịch | 1 transaction DB | Saga + idempotency |
-| Realtime sơ đồ ghế | Polling | SSE |
-| Dữ liệu | Index, partial index | Partition, read replica, nhiều instance sau Nginx |
-| Trọng tâm học | DB, transaction, index, Liquibase, Redis | Queue, replica, LB, resilience, tracing |
+|                                 | MVP1: Đúng đắn                       | MVP2: Chịu tải và phân tán                    |
+| ------------------------------- | ---------------------------------------- | -------------------------------------------------- |
+| Kiến trúc                     | Modular monolith                         | 4-5 service + gateway                              |
+| Giữ ghế                       | Redis (Lua, TTL)                         | Redis (như MVP1) + hàng chờ ảo, rate limit     |
+| Nguồn sự thật ghế đã bán | PostgreSQL                               | PostgreSQL                                         |
+| Bất đồng bộ                 | Không                                   | Message broker + outbox                            |
+| Giao dịch                      | 1 transaction DB                         | Saga + idempotency                                 |
+| Realtime sơ đồ ghế          | Polling                                  | SSE                                                |
+| Dữ liệu                       | Index, partial index                     | Partition, read replica, nhiều instance sau Nginx |
+| Trọng tâm học                | DB, transaction, index, Liquibase, Redis | Queue, replica, LB, resilience, tracing            |
 
 **Tiêu chí hoàn thành MVP1:** zero bán trùng dưới tải test (500 request song song tranh 10 ghế), giữ ghế hết hạn đúng, `docker compose up` dựng được cả hệ thống, có ghi chép số đo trước/sau cho mỗi tối ưu.
 
@@ -132,42 +132,53 @@ Chín bảng + `app_user`. Các quyết định thiết kế đáng nhớ:
 - `booking` lưu `hold_id`, `expires_at`, `idempotency_key` (UNIQUE theo user) và có partial index cho job dọn booking hết hạn.
 - Thời gian lưu **UTC** (`TIMESTAMPTZ`), hiển thị theo giờ rạp ở tầng app. Tiền VND dùng số nguyên.
 - Bảng người dùng tên `app_user` vì `user` là từ khóa dành riêng của Postgres.
-- Suất chiếu có exclusion constraint chặn hai suất trùng giờ trong cùng một phòng (tùy chọn, có thể bỏ ở giai đoạn đầu).
+- Suất chiếu có exclusion constraint (`btree_gist`) chặn hai suất trùng giờ trong cùng một phòng. Đã chốt dùng từ changelog 002; không cộng thời gian dọn phòng.
+- Mỗi khách có tối đa một booking `HELD`/`PAYING` trong một suất (partial unique index trên `booking`).
 
 ### Thiết kế key Redis
 
-| Key | Giá trị | TTL |
-|---|---|---|
-| `hold:{showtimeId}:{seatId}` | `holdId` | 480 giây |
+| Key                            | Giá trị  | TTL                                                                       |
+| ------------------------------ | ---------- | ------------------------------------------------------------------------- |
+| `hold:{showtimeId}:{seatId}` | `holdId` | Số giây tới`booking.expires_at`, tối đa 480 giây. Không gia hạn |
 
-Khi thanh toán, app kiểm tra key còn tồn tại và giá trị đúng bằng `holdId` của mình rồi mới đi tiếp.
+Khi thanh toán, app kiểm tra key còn tồn tại và giá trị đúng bằng `holdId` của mình rồi mới đi tiếp. `expires_at = min(lúc giữ + 8 phút, giờ chiếu - 15 phút)`.
 
 ## 8. State machine của booking
+
+> Cập nhật 2026-11-04: bổ sung `PAYING → HELD`, `PAYING → EXPIRED`, và `FAILED` chỉ còn nghĩa "đã trừ tiền nhưng không cấp được ghế, đã void". Bản chi tiết (reload, đối soát, các mốc thời gian, hành vi hiển thị cho khách) nằm ở `03-data-model.md` mục 5.1.1-5.1.5.
 
 ```mermaid
 stateDiagram-v2
   [*] --> HELD: Lua giữ ghế OK
-  HELD --> PAYING: Thanh toán
+  HELD --> PAYING: Bấm thanh toán, còn hạn
   HELD --> EXPIRED: Hết 8 phút
   HELD --> CANCELLED: User hủy
-  PAYING --> CONFIRMED: OK + ghi SOLD
-  PAYING --> FAILED: Lỗi / ghế bị chiếm
+  PAYING --> HELD: Cổng từ chối, còn hạn
+  PAYING --> EXPIRED: Không trừ tiền, đã hết hạn
+  PAYING --> CONFIRMED: Trừ tiền OK + ghi SOLD
+  PAYING --> FAILED: Trừ tiền OK nhưng ghế bị chiếm, đã void
   CONFIRMED --> [*]
   EXPIRED --> [*]
   CANCELLED --> [*]
   FAILED --> [*]
 ```
 
-| Từ | Sang | Khi nào | Ai kích hoạt |
-|---|---|---|---|
-| (mới) | `HELD` | Lua script giữ ghế thành công | API giữ ghế |
-| `HELD` | `PAYING` | Bấm thanh toán, hold còn hiệu lực | API thanh toán |
-| `HELD` | `EXPIRED` | Quá `expires_at` | Job dọn nền, hoặc phát hiện lười khi người dùng quay lại |
-| `HELD` | `CANCELLED` | Người dùng bỏ đặt vé | API hủy |
-| `PAYING` | `CONFIRMED` | Thanh toán thành công và ghi `SOLD` thành công | API thanh toán |
-| `PAYING` | `FAILED` | Thanh toán lỗi, hoặc hold mất khiến ghi `SOLD` thất bại (kèm void) | API thanh toán |
+| Từ        | Sang          | Khi nào                                                                                                                         | Ai kích hoạt                                                      |
+| ---------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| (mới)     | `HELD`      | Lua script giữ ghế thành công                                                                                                | API giữ ghế                                                       |
+| `HELD`   | `PAYING`    | Bấm thanh toán, hold còn hiệu lực**ít nhất 30 giây**                                                               | API thanh toán                                                     |
+| `HELD`   | `EXPIRED`   | Quá`expires_at`                                                                                                               | Job dọn nền, hoặc phát hiện lười khi người dùng quay lại |
+| `HELD`   | `CANCELLED` | Người dùng bỏ đặt vé                                                                                                      | API hủy                                                            |
+| `PAYING` | `HELD`      | Cổng thanh toán trả lời rõ là từ chối (không trừ tiền), hold còn hạn. Khách thử lại bằng lượt`payment` mới | API thanh toán, hoặc job đối soát                              |
+| `PAYING` | `EXPIRED`   | Chắc chắn không trừ tiền, hold đã hết hạn                                                                               | API thanh toán, hoặc job đối soát                              |
+| `PAYING` | `CONFIRMED` | Thanh toán thành công và ghi`SOLD` thành công                                                                            | API thanh toán, hoặc job đối soát                              |
+| `PAYING` | `FAILED`    | Đã trừ tiền nhưng ghi`SOLD` thất bại (ghế bị chiếm); đã void                                                       | API thanh toán, hoặc job đối soát                              |
 
-Hai quy tắc: **trạng thái cuối không bao giờ đổi nữa**, và mỗi lần chuyển trạng thái dùng `UPDATE ... WHERE status = '<trạng thái cũ>'` để hai request song song không ghi đè nhau.
+Ba quy tắc:
+
+- **Trạng thái cuối không bao giờ đổi nữa.**
+- Mỗi lần chuyển trạng thái dùng `UPDATE ... WHERE status = '<trạng thái cũ>'` để hai request song song không ghi đè nhau.
+- **Timeout hoặc mất response từ cổng thanh toán không phải là "từ chối".** Booking giữ `PAYING`, khách không được thử lại cho tới khi job đối soát hỏi cổng và chốt kết quả. Nhờ vậy khách không bao giờ bị trừ tiền hai lần.
 
 ## 9. Kiến trúc MVP2 (định hướng, chưa chi tiết hóa)
 

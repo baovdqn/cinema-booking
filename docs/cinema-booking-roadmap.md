@@ -83,7 +83,7 @@
 
 **Việc cần làm**
 
-- [ ] Tự viết changelog `002` (showtime) và `003` (showtime_seat)
+- [x] Tự viết changelog `002` (showtime) và `003` (showtime_seat)
 - [ ] Entity và quan hệ JPA cho `cinema`, `room`, `seat`, `movie`, `showtime`
 - [ ] API admin: CRUD phim, rạp, phòng, suất chiếu
 - [ ] Khi tạo suất chiếu, sinh sẵn dòng `showtime_seat` cho mọi ghế của phòng
